@@ -26,7 +26,11 @@ public:
 	}
 
 	~TableEntry() {
-		delete prefix_;
+		//delete prefix_;
+	}
+
+	IPAddress* getAddress() {
+		return prefix_;
 	}
 
 	void print() {
