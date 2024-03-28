@@ -14,9 +14,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IPAddress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TableEntry.h">
@@ -29,6 +26,12 @@
       <Filter>Level1</Filter>
     </ClInclude>
     <ClInclude Include="IPAddress.h">
+      <Filter>Level1</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>Level1</Filter>
+    </ClInclude>
+    <ClInclude Include="MemLeak.h">
       <Filter>Level1</Filter>
     </ClInclude>
   </ItemGroup>

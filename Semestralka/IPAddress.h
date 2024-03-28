@@ -7,7 +7,6 @@
 class IPAddress {
 private:
     std::uint8_t address_[4];
-	//unsigned short mask_[4];
     int maskLength_ = 0;
 
 public:
@@ -26,9 +25,8 @@ public:
 		std::stringstream IP(IPAndMask[0]);
 
 		while (std::getline(IP, part, '.')) {
-            //unsigned long result = std::stoul(str, &pos);
             //todo change to stoi
-            address_[i] = static_cast<std::uint8_t>(atoi(part.c_str()));
+            address_[i] = static_cast<std::uint8_t>(std::stoi(part));
             ++i;
 		}
         

@@ -129,14 +129,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPAddress.h" />
     <ClInclude Include="Algorithm.h" />
+    <ClInclude Include="MemLeak.h" />
     <ClInclude Include="RTParser.h" />
     <ClInclude Include="TableEntry.h" />
+    <ClInclude Include="Time.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
