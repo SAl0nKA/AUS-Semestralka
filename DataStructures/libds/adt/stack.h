@@ -69,24 +69,24 @@ namespace ds::adt {
     }
 
     template<typename T>
-    void ImplicitStack<T>::push(T element)
-    {
+    void ImplicitStack<T>::push(T element){
+        this->getSequence()->insertLast().data_ = element;
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        //throw std::runtime_error("Not implemented yet");
     }
 
     template<typename T>
-    T& ImplicitStack<T>::peek()
-    {
+    T& ImplicitStack<T>::peek(){
+        return this->isEmpty() ? throw std::out_of_range("Stack is empty") : this->getSequence()->accessLast()->data_;
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        //throw std::runtime_error("Not implemented yet");
     }
 
     template<typename T>
-    T ImplicitStack<T>::pop()
-    {
+    T ImplicitStack<T>::pop(){
+        
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
         throw std::runtime_error("Not implemented yet");
@@ -111,16 +111,19 @@ namespace ds::adt {
     }
 
     template<typename T>
-    void ExplicitStack<T>::push(T element)
-    {
+    void ExplicitStack<T>::push(T element){
+        this->getSequence()->insertLast().data_ = element;
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        //throw std::runtime_error("Not implemented yet");
     }
 
     template<typename T>
-    T& ExplicitStack<T>::peek()
-    {
+    T& ExplicitStack<T>::peek(){
+        if (this->isEmpty()) {
+            throw std::out_of_range("Queue is empty");
+        }
+        return this->getSequence()
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
         throw std::runtime_error("Not implemented yet");

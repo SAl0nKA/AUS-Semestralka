@@ -152,11 +152,21 @@ namespace ds::adt {
     }
 
     template<typename T>
-    ADT& Array<T>::assign(const ADT& other)
-    {
+    ADT& Array<T>::assign(const ADT& other){
+        const Array<T>-otherArray = dynamic_cast<const Array<T>*> &other;
+        if (otherArray == nullptr) {
+            throw structure_error("idk");
+        }
+
+        if (otherArray.size() != this->size() || otherArray->base_ != this->base_) {
+            throw structure_error("Different array size");
+        }
+        
+        ADS<T>::assign(other);
+        return *this;
         // TODO 08
         // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        //throw std::runtime_error("Not implemented yet");
     }
 
     template<typename T>

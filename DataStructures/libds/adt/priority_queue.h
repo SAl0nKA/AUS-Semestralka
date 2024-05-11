@@ -262,8 +262,8 @@ namespace ds::adt {
     }
 
     template<typename P, typename T, typename SequenceType>
-    typename SequenceType::BlockType* UnsortedSequencePriorityQueue<P, T, SequenceType>::findHighestPriorityBlock()
-    {
+    typename SequenceType::BlockType* UnsortedSequencePriorityQueue<P, T, SequenceType>::findHighestPriorityBlock(){
+        typename SequenceType::BlockType* bestBlock = this->
         // TODO 09
         // po implementacii vymazte vyhodenie vynimky!
         throw std::runtime_error("Not implemented yet");
