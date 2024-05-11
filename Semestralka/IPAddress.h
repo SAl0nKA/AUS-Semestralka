@@ -25,7 +25,6 @@ public:
 		std::stringstream IP(IPAndMask[0]);
 
 		while (std::getline(IP, part, '.')) {
-            //todo change to stoi
             address_[i] = static_cast<std::uint8_t>(std::stoi(part));
             ++i;
 		}

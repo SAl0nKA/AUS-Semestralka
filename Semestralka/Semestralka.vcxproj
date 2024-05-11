@@ -132,9 +132,12 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="IPAddress.h" />
     <ClInclude Include="Algorithm.h" />
     <ClInclude Include="MemLeak.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="RTParser.h" />
     <ClInclude Include="TableEntry.h" />
     <ClInclude Include="Time.h" />

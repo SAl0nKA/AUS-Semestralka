@@ -20,9 +20,6 @@ public:
 
 	~RTParser() {
 		file.close();
-		/*if (file != NULL) {
-
-		}*/
 	}
 
 	bool isOpen() {
