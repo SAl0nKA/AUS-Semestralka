@@ -3,51 +3,71 @@
 #include "Node.h"
 
 class Hierarchy {
-private:
-	using HierarchyType = ds::amt::MultiWayExplicitHierarchy<Node>;
-	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<Node>;
+public:
+	using HierarchyType = ds::amt::MultiWayExplicitHierarchy<Node*>;
+	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<Node*>;
+	//using PreOrderHierarchyIterator = ds::amt::Hierarchy<ds::amt::BlockType>::PreOrderHierarchyIterator;
 	HierarchyType hierarchy_;
 
 public:
 	Hierarchy(std::vector<TableEntry*> rt_) {
-		Node root = {0,nullptr};
-		//root.octet_ = 0;
+		Node* root = new Node{NULL,nullptr};
 		hierarchy_.emplaceRoot().data_ = root;
-
-		int curretOctetLevel = 0;
+		int i = 0;
 		HierarchyBlockType* lastNode = hierarchy_.accessRoot();
-		int i = 1;
 		for (TableEntry* entry : rt_) {
-			//printf("%d ", i);
 			IPAddress* tmp = entry->getAddress();
 			
 			for (size_t i = 0; i < 4; i++) {
-				int tmpOctetValue = tmp->getAddressOctet(i);
-				Node tmpNode;
-				tmpNode.octet_ = tmpOctetValue;
+				//nacitanie hodnoty octetu a vytvorenie nodu s danou hodnotou
+				std::uint8_t tmpOctetValue = tmp->getAddressOctet(i);
+				Node* tmpNode = new Node{tmpOctetValue ,nullptr};
 				
-				//std::cout << tmpNode.octet_ << ".";
-
-				HierarchyBlockType* tmpParent = hierarchy_.accessLastSon(*lastNode);
-				if (tmpParent == nullptr) {
+				//ak nema node syna vytvori ho
+				if (hierarchy_.accessLastSon(*lastNode) == nullptr) {
 					lastNode = &hierarchy_.emplaceLastSon(*lastNode);
-					lastNode->data_.octet_ = tmpOctetValue;
-					//printf("%hu.\n\t", tmpOctetValue);
+					lastNode->data_ = tmpNode;
 					continue;
 				}
-				if (lastNode->data_.octet_ == tmpNode.octet_) {
+				//ak ma syna porovna ho s pridavanou hodnotou, ak sa rovna tak nevytvara noveho a pouzije existujuceho
+				if (hierarchy_.accessLastSon(*lastNode)->data_->octet_ == tmpNode->octet_) {
+					lastNode = hierarchy_.accessLastSon(*lastNode);
 					continue;
 				}
-				lastNode = &hierarchy_.emplaceLastSon(*tmpParent);
-				lastNode->data_.octet_ = tmpOctetValue;
-				//printf("%hu.", tmpOctetValue);
+				//ak sa nerovna tak vytvori noveho syna
+				lastNode = &hierarchy_.emplaceLastSon(*lastNode);
+				lastNode->data_ = tmpNode;
 			}
-			//std::cout << "\n";
-			lastNode->data_.entry_ = entry;
+			//std::cout << i << " ";
+			lastNode->data_->entry_ = entry;
+			//lastNode->data_->entry_->print();
 			lastNode = hierarchy_.accessRoot();
-			++i;
+			i++;
 		}
 		
+	}
+
+	void visualize(HierarchyBlockType* node, std::string indent = "") {
+		if (!node) return;
+
+		TableEntry* tmp = node->data_->entry_;
+		std::cout << indent;
+		printf("Octet: %hu\n", node->data_->octet_);
+		if (tmp != nullptr) {
+			std::cout << "Entry: ";
+			tmp->print();
+			std::cout << std::endl;
+		} else {
+			
+			//std::cout << "Octet: " << node->data_.octet_ << std::endl;
+		}
+
+		auto sons = hierarchy_.getSons(*node);
+		if (sons) {
+			for (auto son : *sons) {
+				visualize(son, indent + "  ");
+			}
+		}
 	}
 };
 

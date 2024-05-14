@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include "Hierarchy.h"
+#include "RTParser.h"
 
 class Console {
 private:
@@ -30,6 +31,7 @@ public:
 		for (auto entry : rt_) {
 			delete entry;
 		}
+		delete hierarchy;
 	}
 
 private:
@@ -47,7 +49,7 @@ private:
 			rt_.push_back(entry);
 			++i;
 		}
-		Hierarchy* hierarchy = new Hierarchy(rt_);
+		hierarchy = new Hierarchy(rt_);
 
 	}
 public:
@@ -55,7 +57,7 @@ public:
 		printf("[1] List all available entries\n");
 		printf("[2] Find entry by IP\n");
 		printf("[3] Find entry by lifetime\n");
-		printf("[4] \n");
+		printf("[4] List available first octets\n");
 		printf("[5] \n");
 		printf("[6] Exit\n");
 		printf("Input: ");
@@ -72,6 +74,9 @@ public:
 			break;
 		case '3':
 			findByLifetime();
+			break;
+		case '4':
+			listOctets();
 			break;
 		case '6':
 			return false;
@@ -170,6 +175,78 @@ private:
 		for (auto& entry : matchesLifetime) {
 			entry->print();
 		}
+	}
+
+	void listOctets() {
+		/*hierarchy->visualize(hierarchy->hierarchy_.accessRoot());
+		return;*/
+		auto iterator = hierarchy->hierarchy_.beginPre();
+
+		int sonsCount = listAvailableOctets(iterator);
+		
+		std::string input;
+		int index;
+		int currentLevel = 0;
+		
+		while (currentLevel != -1) {
+			if (currentLevel != 0) {
+				printf("Current octet: %d\n", currentLevel);
+			}
+			printf("Select octet index or use -1 to move up a level: ");
+			std::getline(std::cin, input);
+
+			index = std::stoi(input);
+			if (index == -1) {
+				currentLevel--;
+				if (currentLevel == -1) {
+					printf("Exiting\n");
+					break;
+				}
+				iterator.goToParent();
+				sonsCount = listAvailableOctets(iterator);
+				continue;
+			}
+			if (index >= sonsCount) {
+				printf("Invalid index\n");
+				continue;
+			}
+			currentLevel++;
+			iterator.goToNthSon(index);
+			if (currentLevel == 4) {
+				auto block = iterator.getBlockType().data_;
+				//printf("%hu\n", block->octet_);
+				//TableEntry* entry = iterator.getBlockType().data_->entry_;
+				if (block->entry_ == nullptr) {
+					printf("There's an empty entry\n");
+				} else {
+					block->entry_->print();
+				}
+				currentLevel--;
+				iterator.goToParent();
+				sonsCount = listAvailableOctets(iterator);
+				continue;
+			} 
+			sonsCount = listAvailableOctets(iterator);
+		}
+	}
+
+	//void filterHierarchy(ds::amt::MultiWayExplicitHierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator iterator) {
+	//	auto iterBegin = ds::amt::Hierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy->hierarchy_, iterator.getBlockType());
+	//	//auto itBegin = ds::amt::MultiWayExplicitHierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy, &iterator.getBlockType());
+	//	auto iterEnd = ds::amt::Hierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy->hierarchy_,nullptr);
+	//}
+
+	int listAvailableOctets(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator& iterator) {
+		//auto iterator = hierarchy->hierarchy_.beginPre();
+		auto sons = iterator.getBlockType().sons_;
+		printf("Available octets: \n");
+		size_t i = 0;
+		for (auto son : *sons) {
+			printf("[%d]%hu ", i, son->data_->octet_);
+			++i;
+		}
+		printf("\n");
+		return sons->size();
 	}
 };
 

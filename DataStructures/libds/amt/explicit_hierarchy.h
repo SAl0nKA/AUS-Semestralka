@@ -78,6 +78,7 @@ namespace ds::amt {
         BlockType& emplaceLastSon(BlockType& parent);
         void changeSon(BlockType& parent, size_t sonOrder, BlockType* newSon) override;
         void removeSon(BlockType& parent, size_t sonOrder) override;
+        IS<MultiWayExplicitHierarchyBlock<DataType>*>* getSons(BlockType& currentNode);
     };
 
     template<typename DataType>
@@ -378,6 +379,21 @@ namespace ds::amt {
             });
 
         parent.sons_->remove(sonOrder);
+    }
+
+    //niki was here
+    template<typename DataType>
+    IS<MultiWayExplicitHierarchyBlock<DataType>*>* MultiWayExplicitHierarchy<DataType>::getSons(BlockType& currentNode) {
+        return currentNode.sons_;
+        /*MemoryBlock<BlockType*>* sonBlock = parent.sons_->access(sonOrder);
+
+        BlockType* removedSon = sonBlock->data_;
+
+        Hierarchy<BlockType>::processPostOrder(removedSon, [&](BlockType* b) {
+            AbstractMemoryStructure<BlockType>::memoryManager_->releaseMemory(b);
+            });
+
+        parent.sons_->remove(sonOrder);*/
     }
 
     template<typename DataType, size_t K>

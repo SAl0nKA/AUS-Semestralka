@@ -83,7 +83,7 @@ namespace ds::amt {
             bool operator==(const DepthFirstIterator& other) const;
             bool operator!=(const DepthFirstIterator& other) const;
             DataType& operator*();
-
+            BlockType& getBlockType();
         protected:
             void savePosition(BlockType* currentNode);
             void removePosition();
@@ -100,6 +100,8 @@ namespace ds::amt {
             PreOrderHierarchyIterator(Hierarchy<BlockType>* hierarchy, BlockType* node);
             PreOrderHierarchyIterator(const PreOrderHierarchyIterator& other);
             PreOrderHierarchyIterator& operator++();
+            PreOrderHierarchyIterator& goToParent();
+            PreOrderHierarchyIterator& goToNthSon(size_t index);
         };
 
         //----------
@@ -400,6 +402,13 @@ namespace ds::amt {
         }
     }
 
+    //niki was here
+    template<typename BlockType>
+    auto Hierarchy<BlockType>::DepthFirstIterator::getBlockType() -> BlockType& {
+        currentPosition_->currentNodeProcessed_ = true;
+        return *currentPosition_->currentNode_;
+    }
+
     template<typename BlockType>
     Hierarchy<BlockType>::PreOrderHierarchyIterator::PreOrderHierarchyIterator(Hierarchy<BlockType>* hierarchy, BlockType* node) :
         Hierarchy<BlockType>::DepthFirstIterator::DepthFirstIterator(hierarchy) {
@@ -424,6 +433,40 @@ namespace ds::amt {
             }
         }
 
+        return *this;
+    }
+
+    //niki was here
+    template<typename BlockType>
+    typename Hierarchy<BlockType>::PreOrderHierarchyIterator& Hierarchy<BlockType>::PreOrderHierarchyIterator::goToParent() {
+        auto newPosition = this->currentPosition_->previousPosition_;
+        if (newPosition == nullptr) {
+            return *this;
+        }
+        //delete this->currentPosition_;
+        this->currentPosition_ = newPosition;
+        //todo decide
+        //this->currentPosition_->visitedSonCount_ = 0;
+        this->currentPosition_->visitedSonCount_--;
+        //this->currentPosition_->currentSonOrder_ = INVALID_INDEX;
+        //this->currentPosition_->currentNodeProcessed_ = false;
+        return *this;
+    }
+
+    template<typename BlockType>
+    typename Hierarchy<BlockType>::PreOrderHierarchyIterator& Hierarchy<BlockType>::PreOrderHierarchyIterator::goToNthSon(size_t index) {
+        auto nextSon = this->hierarchy_->accessSon(*this->currentPosition_->currentNode_, index);
+        if (nextSon != nullptr) {
+            this->savePosition(nextSon);
+            this->currentPosition_->previousPosition_->currentSon_ = nextSon;
+            this->currentPosition_->previousPosition_->currentSonOrder_ = index + 1;
+            //todo decide
+            //this->currentPosition_->previousPosition_->visitedSonCount_ = index + 1;
+            ++this->currentPosition_->previousPosition_->visitedSonCount_;
+
+            this->currentPosition_->previousPosition_->currentNodeProcessed_ = true;
+
+        }
         return *this;
     }
 
