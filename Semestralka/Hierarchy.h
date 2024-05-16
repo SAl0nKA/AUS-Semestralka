@@ -6,7 +6,10 @@ class Hierarchy {
 public:
 	using HierarchyType = ds::amt::MultiWayExplicitHierarchy<Node*>;
 	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<Node*>;
-	//using PreOrderHierarchyIterator = ds::amt::Hierarchy<ds::amt::BlockType>::PreOrderHierarchyIterator;
+	//using PreOrderHierarchyIterator = ds::amt::Hierarchy<Node*>::PreOrderHierarchyIterator;
+	//using PreOrderHierarchyIterator = ds::amt::Hierarchy<ds::amt::HierarchyBlock>::PreOrderHierarchyIterator;
+	using PreOrderHierarchyIterator = ds::amt::Hierarchy<ds::amt::MWEHBlock<Node*>>::PreOrderHierarchyIterator;
+
 	HierarchyType hierarchy_;
 
 public:

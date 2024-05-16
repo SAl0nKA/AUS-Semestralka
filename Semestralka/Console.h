@@ -64,16 +64,16 @@ public:
 
 		std::string input;
 		std::getline(std::cin, input);
-
+		//auto entryTypeDefiner = [](TableEntry* entry) {return entry; };
 		switch (input[0]) {
 		case '1':
 			listAll();
 			break;
 		case '2':
-			findByIP();
+			findByIP(rt_.begin(), rt_.end(), true);
 			break;
 		case '3':
-			findByLifetime();
+			findByLifetime(rt_.begin(), rt_.end(), true);
 			break;
 		case '4':
 			listOctets();
@@ -97,7 +97,8 @@ private:
 		}
 	}
 
-	void findByIP() {
+	template <class Iterator>//, class StructType, typename TypeDefiner
+	void findByIP(Iterator begin, Iterator end, bool isEntry) {
 		printf("Enter your IP address: ");
 
 		std::string inputIP;
@@ -107,35 +108,47 @@ private:
 			printf("Invalid choice\n");
 			return;
 		}
-
-		std::vector<TableEntry*> matchedAddresses;
+		//todo rework to implicit sequence
+		std::vector<TableEntry*> matchedEntries;
+		std::vector<Node*> matchedNodes;
 		IPAddress matchAddress(inputIP);
 
-		auto matchWithAddressPredicate = [&matchAddress](TableEntry* otherEntry) {
-			int maskTmp = otherEntry->getAddress()->getMaskLength();
-			for (size_t i = 0; i < 4; i++) {
-				if (otherEntry->getAddress()->getAddressOctet(i) != (matchAddress.getAddressOctet(i) & IPAddress::createMaskNumber(maskTmp > 8 ? 8 : maskTmp))) {
-					return false;
-				}
-				if (maskTmp >= 8) {
-					maskTmp -= 8;
-				}
-			}
-			return true;
+		auto matchWithEntryPredicate = [&matchAddress](TableEntry* otherEntry) {
+			return Console::matchWithAddress(matchAddress, otherEntry);
 			};
 
-		Algorithm::matchAddressBy(rt_.begin(), rt_.end(),
-			[&](TableEntry* entry) {
-				matchedAddresses.push_back(entry);
-			}, matchWithAddressPredicate);
+		auto matchWithNodePredicate = [&matchAddress](Node* otherNode) {
+			return Console::matchWithAddress(matchAddress, otherNode->entry_);
+			};
 
-		matchedAddresses.empty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
-		for (auto& entry : matchedAddresses) {
-			entry->print();
+		if (isEntry) {
+			Algorithm::matchAddressBy(begin, end,
+				[](TableEntry* entry, std::vector<TableEntry*>* matchedEntries) {
+					matchedEntries->push_back(entry);
+				}, &matchedEntries,matchWithEntryPredicate );
+
+			matchedEntries.empty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
+			for (auto& entry : matchedEntries) {
+				entry->print();
+			}
+		} else {
+			Algorithm::matchAddressBy(begin, end,
+				[](Node* node, std::vector<Node*>* matchedNodes) {
+					matchedNodes->push_back(node);
+				}, &matchedNodes,matchWithNodePredicate);
+
+			matchedNodes.empty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
+			for (auto& node : matchedNodes) {
+				node->entry_->print();
+			}
 		}
+		
+
+		
 	}
 
-	void findByLifetime() {
+	template <class Iterator>//, typename TypeDefiner
+	void findByLifetime(Iterator begin, Iterator end, bool isEntry) {
 		printf("Enter the first part of the time interval in format [1w2d3h] or [hh:mm:ss]: ");
 		std::string inputFrom;
 		std::getline(std::cin, inputFrom);
@@ -143,37 +156,46 @@ private:
 		std::string inputTo;
 		std::getline(std::cin, inputTo);
 
-
-
 		if (inputFrom.empty() && inputTo.empty()) {
 			printf("Invalid choice\n");
 			return;
 		}
 
-		std::vector<TableEntry*> matchesLifetime;
+		std::vector<TableEntry*> matchedEntries;
+		std::vector<Node*> matchedNodes;
 
 		Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
 		Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
 
 
-		auto matchLifetimePredicate = [&matchLifetimeFrom, &matchLifetimeTo](TableEntry* otherEntry) {
-			if (*(otherEntry->getTime()) >= *matchLifetimeFrom && *(otherEntry->getTime()) <= *matchLifetimeTo) {
-				return true;
-			}
-			return false;
+		auto matchLifetimeEntryPredicate = [&matchLifetimeFrom, &matchLifetimeTo](TableEntry* otherEntry) {
+			return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherEntry);
 			};
 
+		auto matchLifetimeNodePredicate = [&matchLifetimeFrom, &matchLifetimeTo](Node* otherNode) {
+			return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherNode->entry_);
+			};
 
+		if (isEntry) {
+			Algorithm::matchAddressBy(begin, end,
+				[](TableEntry* entry, std::vector<TableEntry*>* matchedEntries) {
+					matchedEntries->push_back(entry);
+				}, &matchedEntries, matchLifetimeEntryPredicate );
 
-		Algorithm::matchAddressBy(rt_.begin(), rt_.end(),
-			[&](TableEntry* entry) {
-				matchesLifetime.push_back(entry);
-			}, matchLifetimePredicate);
+			matchedEntries.empty() ? std::cout << "No addresses found\n" : std::cout << "Found lifetime matches\n";
+			for (auto& entry : matchedEntries) {
+				entry->print();
+			}
+		} else {
+			Algorithm::matchAddressBy(begin, end,
+				[](Node* node, std::vector<Node*>* matchedNodes) {
+					matchedNodes->push_back(node);
+				}, &matchedNodes, matchLifetimeNodePredicate);
 
-
-		std::cout << "Found lifetime matches\n";
-		for (auto& entry : matchesLifetime) {
-			entry->print();
+			matchedNodes.empty() ? std::cout << "No addresses found\n" : std::cout << "Found lifetime matches\n";
+			for (auto& node : matchedNodes) {
+				node->entry_->print();
+			}
 		}
 	}
 
@@ -184,7 +206,7 @@ private:
 
 		int sonsCount = listAvailableOctets(iterator);
 		
-		std::string input;
+		
 		int index;
 		int currentLevel = 0;
 		
@@ -192,10 +214,26 @@ private:
 			if (currentLevel != 0) {
 				printf("Current octet: %d\n", currentLevel);
 			}
-			printf("Select octet index or use -1 to move up a level: ");
+			std::string input;
+			printf("Select next octet index\nUse -1 to move up a level\nSearch by [l]ifetime\nSearch by [a]ddress\nChoice: ");
 			std::getline(std::cin, input);
 
+			if (input.empty()) {
+				printf("Invalid choice\n");
+				continue;
+			}
+
+			if (input[0] == 'l') {
+				filterHierarchy(iterator,'l');
+				continue;
+			} else if (input[0] == 'a') {
+				filterHierarchy(iterator, 'a');
+				continue;
+			}
+
 			index = std::stoi(input);
+
+
 			if (index == -1) {
 				currentLevel--;
 				if (currentLevel == -1) {
@@ -230,11 +268,16 @@ private:
 		}
 	}
 
-	//void filterHierarchy(ds::amt::MultiWayExplicitHierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator iterator) {
-	//	auto iterBegin = ds::amt::Hierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy->hierarchy_, iterator.getBlockType());
-	//	//auto itBegin = ds::amt::MultiWayExplicitHierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy, &iterator.getBlockType());
-	//	auto iterEnd = ds::amt::Hierarchy<Node*>::PreOrderHierarchyIterator(&hierarchy->hierarchy_,nullptr);
-	//}
+	void filterHierarchy(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator iterator,char choice) {
+		ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator itBegin(&hierarchy->hierarchy_, &iterator.getBlockType());
+		ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator itEnd(&hierarchy->hierarchy_, nullptr);
+		//auto nodeTypeDefiner = [](Node* node) {return node->entry_; };
+		if (choice == 'l') {
+			findByLifetime(itBegin,itEnd, false);
+		} else if (choice == 'a') {
+			findByIP(itBegin, itEnd, false);
+		}
+	}
 
 	int listAvailableOctets(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator& iterator) {
 		//auto iterator = hierarchy->hierarchy_.beginPre();
@@ -248,5 +291,25 @@ private:
 		printf("\n");
 		return sons->size();
 	}
-};
 
+	static bool matchWithAddress(IPAddress matchAddress, TableEntry* otherEntry) {
+		int maskTmp = otherEntry->getAddress()->getMaskLength();
+		for (size_t i = 0; i < 4; i++) {
+			if (otherEntry->getAddress()->getAddressOctet(i) != (matchAddress.getAddressOctet(i) & IPAddress::createMaskNumber(maskTmp > 8 ? 8 : maskTmp))) {
+				return false;
+			}
+			if (maskTmp >= 8) {
+				maskTmp -= 8;
+			}
+		}
+		return true;
+	}
+
+	static bool matchLifetime(Time* matchLifetimeFrom, Time* matchLifetimeTo, TableEntry* otherEntry) {
+		if (*(otherEntry->getTime()) >= *matchLifetimeFrom && *(otherEntry->getTime()) <= *matchLifetimeTo) {
+			return true;
+		}
+		return false;
+	}
+
+};

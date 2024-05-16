@@ -28,15 +28,15 @@ public:
 		delete time_;
 	}
 
-	IPAddress* getAddress() {
+	IPAddress* getAddress() const {
 		return prefix_;
 	}
 
-	Time* getTime() {
+	Time* getTime() const {
 		return time_;
 	}
 
-	void print() {
+	void print() const {
 		std::printf("%3s %20s %10s %25s %10s\n", source_.c_str(), prefix_->string().c_str(), metric_.c_str(), nextHop_.c_str(), time_->getFormattedTime().c_str());
 	}
 };

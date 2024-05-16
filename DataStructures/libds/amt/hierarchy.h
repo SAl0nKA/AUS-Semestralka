@@ -37,6 +37,7 @@ namespace ds::amt {
 
     protected:
         using DataType = typename BlockType::DataT;
+        //using DataType = decltype(BlockType().data_);
 
         class DepthFirstIterator {
         protected:
@@ -83,6 +84,7 @@ namespace ds::amt {
             bool operator==(const DepthFirstIterator& other) const;
             bool operator!=(const DepthFirstIterator& other) const;
             DataType& operator*();
+            //niki was here
             BlockType& getBlockType();
         protected:
             void savePosition(BlockType* currentNode);
@@ -100,6 +102,7 @@ namespace ds::amt {
             PreOrderHierarchyIterator(Hierarchy<BlockType>* hierarchy, BlockType* node);
             PreOrderHierarchyIterator(const PreOrderHierarchyIterator& other);
             PreOrderHierarchyIterator& operator++();
+            //niki was here
             PreOrderHierarchyIterator& goToParent();
             PreOrderHierarchyIterator& goToNthSon(size_t index);
         };
