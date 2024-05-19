@@ -54,6 +54,7 @@ private:
 	}
 public:
 	bool mainMenu() {
+		//printf("Size: %d\n",hierarchy->hierarchy_.size());
 		printf("[1] List all available entries\n");
 		printf("[2] Find entry by IP\n");
 		printf("[3] Find entry by lifetime\n");
@@ -65,15 +66,16 @@ public:
 		std::string input;
 		std::getline(std::cin, input);
 		//auto entryTypeDefiner = [](TableEntry* entry) {return entry; };
+		auto entryDefiner = [&](TableEntry* entry) { return entry; };
 		switch (input[0]) {
 		case '1':
 			listAll();
 			break;
 		case '2':
-			findByIP(rt_.begin(), rt_.end(), true);
+			findByIP<std::vector<TableEntry*>::iterator, TableEntry*, std::function<TableEntry*(TableEntry*)>>(rt_.begin(), rt_.end(),entryDefiner);
 			break;
 		case '3':
-			findByLifetime(rt_.begin(), rt_.end(), true);
+			findByLifetime<std::vector<TableEntry*>::iterator, TableEntry*, std::function<TableEntry* (TableEntry*)>>(rt_.begin(), rt_.end(), entryDefiner);
 			break;
 		case '4':
 			listOctets();
@@ -97,8 +99,8 @@ private:
 		}
 	}
 
-	template <class Iterator>//, class StructType, typename TypeDefiner
-	void findByIP(Iterator begin, Iterator end, bool isEntry) {
+	template <typename Iterator, typename ContentType, typename TypeDefiner>
+	void findByIP(Iterator begin, Iterator end, TypeDefiner lambda) {
 		printf("Enter your IP address: ");
 
 		std::string inputIP;
@@ -109,10 +111,29 @@ private:
 			return;
 		}
 		//todo rework to implicit sequence
-		std::vector<TableEntry*> matchedEntries;
-		std::vector<Node*> matchedNodes;
+		std::vector<ContentType> matchedNodes;
 		IPAddress matchAddress(inputIP);
 
+		Algorithm::matchAddressBy(begin, end,
+			[&](ContentType node, std::vector<ContentType>* matchedNodes) {
+				matchedNodes->push_back(node);
+			}, &matchedNodes, 
+			[&](ContentType otherNode) {
+				return Console::matchWithAddress(matchAddress, lambda(otherNode));
+				});
+
+		
+		matchedNodes.empty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
+		int i = 1;
+		for (auto& tmp : matchedNodes) {
+			auto entry = lambda(tmp);
+			if (entry != nullptr) {
+				printf("%d ",i);
+				entry->print();
+			}
+		}
+
+		/*
 		auto matchWithEntryPredicate = [&matchAddress](TableEntry* otherEntry) {
 			return Console::matchWithAddress(matchAddress, otherEntry);
 			};
@@ -142,13 +163,13 @@ private:
 				node->entry_->print();
 			}
 		}
-		
+		*/
 
 		
 	}
 
-	template <class Iterator>//, typename TypeDefiner
-	void findByLifetime(Iterator begin, Iterator end, bool isEntry) {
+	template <class Iterator, typename ContentType, typename TypeDefiner>
+	void findByLifetime(Iterator begin, Iterator end, TypeDefiner lambda) {
 		printf("Enter the first part of the time interval in format [1w2d3h] or [hh:mm:ss]: ");
 		std::string inputFrom;
 		std::getline(std::cin, inputFrom);
@@ -161,21 +182,41 @@ private:
 			return;
 		}
 
-		std::vector<TableEntry*> matchedEntries;
-		std::vector<Node*> matchedNodes;
+		//std::vector<TableEntry*> matchedEntries;
+		std::vector<ContentType> matchedNodes;
 
 		Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
 		Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
 
 
-		auto matchLifetimeEntryPredicate = [&matchLifetimeFrom, &matchLifetimeTo](TableEntry* otherEntry) {
+		/*auto matchLifetimeEntryPredicate = [&matchLifetimeFrom, &matchLifetimeTo](TableEntry* otherEntry) {
 			return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherEntry);
 			};
 
 		auto matchLifetimeNodePredicate = [&matchLifetimeFrom, &matchLifetimeTo](Node* otherNode) {
 			return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherNode->entry_);
-			};
+			};*/
 
+		Algorithm::matchAddressBy(begin, end,
+			[&](ContentType node, std::vector<ContentType>* matchedNodes) {
+				matchedNodes->push_back(node);
+			}, &matchedNodes,
+			[&](ContentType otherNode) {
+				return Console::matchLifetime(matchLifetimeFrom,matchLifetimeTo, lambda(otherNode));
+				});
+
+		matchedNodes.empty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
+		int i = 1;
+		for (auto& tmp : matchedNodes) {
+			auto entry = lambda(tmp);
+			if (entry != nullptr) {
+				printf("%d ", i);
+				entry->print();
+			}
+		}
+		delete matchLifetimeFrom;
+		delete matchLifetimeTo;
+		/*
 		if (isEntry) {
 			Algorithm::matchAddressBy(begin, end,
 				[](TableEntry* entry, std::vector<TableEntry*>* matchedEntries) {
@@ -196,7 +237,7 @@ private:
 			for (auto& node : matchedNodes) {
 				node->entry_->print();
 			}
-		}
+		}*/
 	}
 
 	void listOctets() {
@@ -204,16 +245,18 @@ private:
 		return;*/
 		auto iterator = hierarchy->hierarchy_.beginPre();
 
-		int sonsCount = listAvailableOctets(iterator);
+		int sonsCount = 0;//listAvailableOctets(iterator);
 		
 		
 		int index;
 		int currentLevel = 0;
+		int currentOctet = 0;
 		
 		while (currentLevel != -1) {
 			if (currentLevel != 0) {
-				printf("Current octet: %d\n", currentLevel);
+				printf("Current octet level: %d\nCurrent octet: %d\n", currentLevel,currentOctet);
 			}
+			sonsCount = listAvailableOctets(iterator);
 			std::string input;
 			printf("Select next octet index\nUse -1 to move up a level\nSearch by [l]ifetime\nSearch by [a]ddress\nChoice: ");
 			std::getline(std::cin, input);
@@ -223,6 +266,7 @@ private:
 				continue;
 			}
 
+			//spustenie filtrovania na danom node
 			if (input[0] == 'l') {
 				filterHierarchy(iterator,'l');
 				continue;
@@ -232,8 +276,7 @@ private:
 			}
 
 			index = std::stoi(input);
-
-
+			//vratenie o uroven vyssie
 			if (index == -1) {
 				currentLevel--;
 				if (currentLevel == -1) {
@@ -244,12 +287,15 @@ private:
 				sonsCount = listAvailableOctets(iterator);
 				continue;
 			}
+			//index out of bounds
 			if (index >= sonsCount) {
 				printf("Invalid index\n");
 				continue;
 			}
+
 			currentLevel++;
-			iterator.goToNthSon(index);
+			currentOctet = iterator.goToNthSon(index).getBlockType().data_->octet_;
+			//dosiahnutie posledneho syna
 			if (currentLevel == 4) {
 				auto block = iterator.getBlockType().data_;
 				//printf("%hu\n", block->octet_);
@@ -264,23 +310,24 @@ private:
 				sonsCount = listAvailableOctets(iterator);
 				continue;
 			} 
-			sonsCount = listAvailableOctets(iterator);
+			//sonsCount = listAvailableOctets(iterator);
 		}
 	}
 
 	void filterHierarchy(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator iterator,char choice) {
-		ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator itBegin(&hierarchy->hierarchy_, &iterator.getBlockType());
-		ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator itEnd(&hierarchy->hierarchy_, nullptr);
-		//auto nodeTypeDefiner = [](Node* node) {return node->entry_; };
+		using Iterator = ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator;
+		Iterator itBegin(&hierarchy->hierarchy_, &iterator.getBlockType());
+		Iterator itEnd(&hierarchy->hierarchy_, nullptr);
+		auto nodeTypeDefiner = [](Node* node) {return node->entry_; };
+		auto entryDefiner = [&](Node* node) { return node->entry_; };
 		if (choice == 'l') {
-			findByLifetime(itBegin,itEnd, false);
+			findByLifetime<ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator, Node*, std::function<TableEntry* (Node*)>>(itBegin, itEnd, nodeTypeDefiner);
 		} else if (choice == 'a') {
-			findByIP(itBegin, itEnd, false);
+			findByIP<ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator, Node*, std::function<TableEntry* (Node*)>>(itBegin, itEnd, nodeTypeDefiner);
 		}
 	}
 
 	int listAvailableOctets(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator& iterator) {
-		//auto iterator = hierarchy->hierarchy_.beginPre();
 		auto sons = iterator.getBlockType().sons_;
 		printf("Available octets: \n");
 		size_t i = 0;
@@ -293,6 +340,9 @@ private:
 	}
 
 	static bool matchWithAddress(IPAddress matchAddress, TableEntry* otherEntry) {
+		if (otherEntry == nullptr) {
+			return false;
+		}
 		int maskTmp = otherEntry->getAddress()->getMaskLength();
 		for (size_t i = 0; i < 4; i++) {
 			if (otherEntry->getAddress()->getAddressOctet(i) != (matchAddress.getAddressOctet(i) & IPAddress::createMaskNumber(maskTmp > 8 ? 8 : maskTmp))) {
@@ -306,6 +356,9 @@ private:
 	}
 
 	static bool matchLifetime(Time* matchLifetimeFrom, Time* matchLifetimeTo, TableEntry* otherEntry) {
+		if (otherEntry == nullptr) {
+			return false;
+		}
 		if (*(otherEntry->getTime()) >= *matchLifetimeFrom && *(otherEntry->getTime()) <= *matchLifetimeTo) {
 			return true;
 		}
