@@ -7,11 +7,13 @@
 #include "Hierarchy.h"
 #include "RTParser.h"
 #include "Algorithm.h"
+#include "Treap.h"
 
 class Console {
 private:
 	std::vector<TableEntry*> rt_;
 	Hierarchy* hierarchy;
+	Treap* treap;
 
 public:
 	Console(std::string path) {
@@ -32,11 +34,13 @@ public:
 			delete entry;
 		}
 		delete hierarchy;
+		delete treap;
 	}
 
 private:
 	void loadFile(std::string path) {
 		RTParser rtparser(path);
+		treap = new Treap();
 
 		int i = 1;
 		while (rtparser.isOpen()) {
@@ -45,6 +49,19 @@ private:
 				continue;
 			}
 			rt_.push_back(entry);
+			//todo rework to methods
+			std::string nextHopStr = entry->getNextHop()->stringWithoutMask();
+			ds::amt::ImplicitSequence<TableEntry*>** sequence = nullptr;
+			//printf("%d Iteracia\n", i);
+			bool found = treap->treap_.tryFind(nextHopStr, sequence);
+			if (found) {
+				(*sequence)->insertLast().data_ = entry;
+			} else {
+				ds::amt::ImplicitSequence<TableEntry*>* tmp = new ds::amt::ImplicitSequence<TableEntry*>();
+				tmp->insertLast().data_ = entry;
+				//printf("Tmp size: %d\n", tmp->size());
+				treap->treap_.insert(nextHopStr, tmp);
+			}
 			++i;
 		}
 		hierarchy = new Hierarchy(rt_);
@@ -57,7 +74,7 @@ public:
 		printf("[2] Find entry by IP\n");
 		printf("[3] Find entry by lifetime\n");
 		printf("[4] List available first octets\n");
-		printf("[5] \n");
+		printf("[5] Find by next hop IP\n");
 		printf("[6] Exit\n");
 		printf("Input: ");
 
@@ -78,6 +95,9 @@ public:
 			break;
 		case '4':
 			listOctets();
+			break;
+		case '5':
+			findByNexthop();
 			break;
 		case '6':
 			return false;
@@ -409,6 +429,38 @@ private:
 		}
 		printf("\n");
 		return sons->size();
+	}
+
+	void findByNexthop() {
+		printf("Enter your nexthop IP address: ");
+
+		std::string inputIP;
+		std::getline(std::cin, inputIP);
+
+		if (inputIP.empty()) {
+			printf("Invalid choice\n");
+			return;
+		}
+
+		IPAddress matchAddress;
+		try {
+			matchAddress = IPAddress(inputIP);
+		} catch (const std::logic_error& e) {
+			printf("Invalid input: %s\n\n", e.what());
+			return;
+		}
+
+		ds::amt::ImplicitSequence<TableEntry*>** sequence = nullptr;
+		bool found = treap->treap_.tryFind(matchAddress.stringWithoutMask(), sequence);
+		if (!found) {
+			printf("No addresses found\n");
+			return;
+		}
+
+		printf("Found addresses %d:\n",(*sequence)->size());
+		for (auto entry : **sequence) {
+			entry->print();
+		}
 	}
 
 	static bool matchWithAddress(IPAddress matchAddress, TableEntry* otherEntry) {

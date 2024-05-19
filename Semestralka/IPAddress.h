@@ -58,6 +58,20 @@ public:
         return str;
     }
 
+    std::string stringWithoutMask() {
+        char buffer[20];
+        sprintf_s(buffer, "%hu.%hu.%hu.%hu", address_[0], address_[1], address_[2], address_[3]);
+        std::string str(buffer);
+        return str;
+    }
+
+    std::string stringNextHop() {
+        char buffer[20];
+        sprintf_s(buffer, "via %hu.%hu.%hu.%hu", address_[0], address_[1], address_[2], address_[3]);
+        std::string str(buffer);
+        return str;
+    }
+
     //static bool matchWithAddress(IPAddress matchAddress,IPAddress otherAddress) {
     //    /*int notFullOctet = matchAddress.maskLength_ % 8;
     //    int fullOctets = (matchAddress.maskLength_ - notFullOctet) / 8;*/

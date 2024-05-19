@@ -139,8 +139,10 @@
     <ClInclude Include="MemLeak.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="RTParser.h" />
+    <ClInclude Include="Sorter.h" />
     <ClInclude Include="TableEntry.h" />
     <ClInclude Include="Time.h" />
+    <ClInclude Include="Treap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

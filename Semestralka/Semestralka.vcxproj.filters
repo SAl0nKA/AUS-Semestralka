@@ -12,6 +12,12 @@
     <Filter Include="Level2">
       <UniqueIdentifier>{3a332ca0-cced-42ab-8ac2-6dd78b48c45d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Level3">
+      <UniqueIdentifier>{e939b1aa-1332-4a45-84c2-5ffc715a882f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Level4">
+      <UniqueIdentifier>{ea69dff1-924d-4608-b437-70fae191060a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,6 +51,12 @@
     </ClInclude>
     <ClInclude Include="Hierarchy.h">
       <Filter>Level2</Filter>
+    </ClInclude>
+    <ClInclude Include="Treap.h">
+      <Filter>Level3</Filter>
+    </ClInclude>
+    <ClInclude Include="Sorter.h">
+      <Filter>Level4</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
