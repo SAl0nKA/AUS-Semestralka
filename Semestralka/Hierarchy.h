@@ -35,6 +35,7 @@ public:
 				//ak ma syna porovna ho s pridavanou hodnotou, ak sa rovna tak nevytvara noveho a pouzije existujuceho
 				if (hierarchy_.accessLastSon(*lastNode)->data_->octet_ == tmpNode->octet_) {
 					lastNode = hierarchy_.accessLastSon(*lastNode);
+					delete tmpNode;
 					continue;
 				}
 				//ak sa nerovna tak vytvori noveho syna
@@ -48,6 +49,12 @@ public:
 			i++;
 		}
 		
+	}
+
+	~Hierarchy() {
+		hierarchy_.processPostOrder(hierarchy_.accessRoot(), [](HierarchyBlockType* block) { delete block->data_; });
+		//printf("Size: %d\n", hierarchy_.size());
+		hierarchy_.clear();
 	}
 
 	void visualize(HierarchyBlockType* node, std::string indent = "") {

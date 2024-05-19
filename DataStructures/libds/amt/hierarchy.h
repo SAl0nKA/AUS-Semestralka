@@ -446,13 +446,12 @@ namespace ds::amt {
         if (newPosition == nullptr) {
             return *this;
         }
-        //delete this->currentPosition_;
+        delete this->currentPosition_;
         this->currentPosition_ = newPosition;
-        //todo decide
-        //this->currentPosition_->visitedSonCount_ = 0;
+        this->currentPosition_->visitedSonCount_ = 0;
         this->currentPosition_->visitedSonCount_--;
-        //this->currentPosition_->currentSonOrder_ = INVALID_INDEX;
-        //this->currentPosition_->currentNodeProcessed_ = false;
+        this->currentPosition_->currentSonOrder_ = INVALID_INDEX;
+        this->currentPosition_->currentNodeProcessed_ = false;
         return *this;
     }
 

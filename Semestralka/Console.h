@@ -17,7 +17,7 @@ public:
 		printf("Welcome to the routing table parser\n");
 		printf("Input the path for the CSV file or press enter for default path [./RT.csv]: ");
 		std::string input = "";
-		//std::cin >> input;
+		//todo fix incorrect path
 		std::getline(std::cin, input);
 		if (input == "") {
 			loadFile(path);
@@ -28,6 +28,7 @@ public:
 	}
 
 	~Console() {
+		//rt_.clear();
 		for (auto entry : rt_) {
 			delete entry;
 		}
@@ -284,7 +285,7 @@ private:
 					break;
 				}
 				iterator.goToParent();
-				sonsCount = listAvailableOctets(iterator);
+				//sonsCount = listAvailableOctets(iterator);
 				continue;
 			}
 			//index out of bounds
