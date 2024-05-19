@@ -12,6 +12,9 @@ private:
 public:
 	RTParser(std::string filepath) {
 		file.open(filepath);
+		if (!file.is_open()) {
+			throw std::runtime_error("Error: File not found");
+		}
 
 		//skip first line
 		std::string line;

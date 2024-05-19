@@ -32,6 +32,10 @@ public:
         maskLength_ = std::stoi(IPAndMask[1] == "" ? "0" : IPAndMask[1]);
 	}
 
+    IPAddress() {
+
+    }
+
     ~IPAddress() {
 
     }

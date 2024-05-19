@@ -6,6 +6,7 @@
 #include <limits>
 #include "Hierarchy.h"
 #include "RTParser.h"
+#include "Algorithm.h"
 
 class Console {
 private:
@@ -21,7 +22,6 @@ public:
 		std::getline(std::cin, input);
 		if (input == "") {
 			loadFile(path);
-
 		} else {
 			loadFile(input);
 		}
@@ -109,7 +109,15 @@ private:
 			printf("Invalid choice\n");
 			return;
 		}
-		IPAddress matchAddress(inputIP);
+
+		IPAddress matchAddress;
+
+		try {
+			matchAddress = IPAddress(inputIP);
+		} catch (const std::logic_error& e) {
+			printf("Invalid input: %s\n\n", e.what());
+			return;
+		}
 
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
@@ -147,7 +155,14 @@ private:
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
 
-		IPAddress matchAddress(inputIP);
+		IPAddress matchAddress;
+
+		try {
+			matchAddress = IPAddress(inputIP);
+		} catch (const std::logic_error& e) {
+			printf("Invalid input: %s\n\n", e.what());
+			return;
+		}
 
 		ds::amt::ImplicitSequence<TableEntry*> nodeEntries;
 		while (begin != end) {
@@ -192,8 +207,16 @@ private:
 			return;
 		}
 
-		Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
-		Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+		Time* matchLifetimeFrom;
+		Time* matchLifetimeTo;
+
+		try {
+			Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
+			Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+		} catch (const std::logic_error& e) {
+			printf("Invalid input: %s\n\n", e.what());
+			return;
+		}
 
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
@@ -235,8 +258,16 @@ private:
 			return;
 		}
 
-		Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
-		Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+		Time* matchLifetimeFrom;
+		Time* matchLifetimeTo;
+
+		try {
+			Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
+			Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+		} catch (const std::logic_error& e) {
+			printf("Invalid input: %s\n\n", e.what());
+			return;
+		}
 
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
@@ -308,7 +339,14 @@ private:
 				continue;
 			}
 
-			index = std::stoi(input);
+			
+			try {
+				index = std::stoi(input);
+			} catch (const std::logic_error& e) {
+				printf("Invalid input, try again\n\n");
+				continue;
+			}
+
 			//vratenie o uroven vyssie
 			if (index == -1) {
 				currentLevel--;
