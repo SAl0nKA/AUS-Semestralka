@@ -14,9 +14,9 @@ public:
 
 public:
 	Hierarchy(std::vector<TableEntry*> rt_) {
-		Node* root = new Node{NULL,nullptr};
+		Node* root = new Node{NULL,ds::amt::ImplicitSequence<TableEntry*>()};
 		hierarchy_.emplaceRoot().data_ = root;
-		int i = 0;
+		//int i = 0;
 		HierarchyBlockType* lastNode = hierarchy_.accessRoot();
 		for (TableEntry* entry : rt_) {
 			IPAddress* tmp = entry->getAddress();
@@ -24,7 +24,7 @@ public:
 			for (size_t i = 0; i < 4; i++) {
 				//nacitanie hodnoty octetu a vytvorenie nodu s danou hodnotou
 				std::uint8_t tmpOctetValue = tmp->getAddressOctet(i);
-				Node* tmpNode = new Node{tmpOctetValue ,nullptr};
+				Node* tmpNode = new Node{tmpOctetValue ,ds::amt::ImplicitSequence<TableEntry*>()};
 				
 				//ak nema node syna vytvori ho
 				if (hierarchy_.accessLastSon(*lastNode) == nullptr) {
@@ -43,10 +43,10 @@ public:
 				lastNode->data_ = tmpNode;
 			}
 			//std::cout << i << " ";
-			lastNode->data_->entry_ = entry;
+			lastNode->data_->entries_.insertLast().data_ = entry;
 			//lastNode->data_->entry_->print();
 			lastNode = hierarchy_.accessRoot();
-			i++;
+			//i++;
 		}
 		
 	}
@@ -57,27 +57,27 @@ public:
 		hierarchy_.clear();
 	}
 
-	void visualize(HierarchyBlockType* node, std::string indent = "") {
-		if (!node) return;
+	//void visualize(HierarchyBlockType* node, std::string indent = "") {
+	//	if (!node) return;
 
-		TableEntry* tmp = node->data_->entry_;
-		std::cout << indent;
-		printf("Octet: %hu\n", node->data_->octet_);
-		if (tmp != nullptr) {
-			std::cout << "Entry: ";
-			tmp->print();
-			std::cout << std::endl;
-		} else {
-			
-			//std::cout << "Octet: " << node->data_.octet_ << std::endl;
-		}
+	//	TableEntry* tmp = node->data_->entry_;
+	//	std::cout << indent;
+	//	printf("Octet: %hu\n", node->data_->octet_);
+	//	if (tmp != nullptr) {
+	//		std::cout << "Entry: ";
+	//		tmp->print();
+	//		std::cout << std::endl;
+	//	} else {
+	//		
+	//		//std::cout << "Octet: " << node->data_.octet_ << std::endl;
+	//	}
 
-		auto sons = hierarchy_.getSons(*node);
-		if (sons) {
-			for (auto son : *sons) {
-				visualize(son, indent + "  ");
-			}
-		}
-	}
+	//	auto sons = hierarchy_.getSons(*node);
+	//	if (sons) {
+	//		for (auto son : *sons) {
+	//			visualize(son, indent + "  ");
+	//		}
+	//	}
+	//}
 };
 
