@@ -9,6 +9,7 @@
 #include "Algorithm.h"
 #include "Treap.h"
 #include "Sorter.h"
+#include <libds/heap_monitor.h>
 
 class Console {
 private:
@@ -142,16 +143,7 @@ private:
 			matchAddressPredicate
 		);
 
-		
-		matchedEntries.isEmpty() ? printf("No addresses found\n") : printf("Found addresses %d:\n", matchedEntries.size());
-		int i = 1;
-		for (auto entry : matchedEntries) {
-			if (entry != nullptr) {
-				printf("%d ",i);
-				entry->print();
-			}
-		}
-		printf("\n");
+		printEntries(matchedEntries);
 	}
 
 	//Level 2
@@ -440,6 +432,7 @@ private:
 			if (entry != nullptr) {
 				printf("%d ", i);
 				entry->print();
+				i++;
 			}
 		}
 		printf("\n");

@@ -1,5 +1,6 @@
 #pragma once
 #include <libds/adt/table.h>
+#include <libds/heap_monitor.h>
 
 class Treap {
 public:

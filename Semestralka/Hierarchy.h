@@ -1,6 +1,7 @@
 #pragma once
 #include <libds/amt/explicit_hierarchy.h>
 #include "Node.h"
+#include <libds/heap_monitor.h>
 
 class Hierarchy {
 public:

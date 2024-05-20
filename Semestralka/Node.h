@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include "TableEntry.h"
+#include <libds/heap_monitor.h>
+
 struct Node {
 	std::uint8_t octet_;
 	//TableEntry* entry_;

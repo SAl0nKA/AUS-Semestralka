@@ -1,4 +1,6 @@
 #pragma once
+#include <libds/heap_monitor.h>
+
 class Algorithm {
 public:
 	template <class Iterator, typename Predicate, typename InsertMatch>

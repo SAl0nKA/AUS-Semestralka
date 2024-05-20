@@ -4,6 +4,7 @@
 #include <vector>
 #include "IPAddress.h"
 #include "Time.h"
+#include <libds/heap_monitor.h>
 
 class TableEntry {
 private:

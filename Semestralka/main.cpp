@@ -1,7 +1,9 @@
-#include "MemLeak.h"
+//#include "MemLeak.h"
 #include "Console.h"
+#include <libds/heap_monitor.h>
 
 int main(){
+	initHeapMonitor();
 	Console* console;
 	try {
 		console = new Console("RT.csv");

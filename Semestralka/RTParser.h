@@ -4,6 +4,7 @@
 #include <sstream>
 #include "TableEntry.h"
 #include <vector>
+#include <libds/heap_monitor.h>
 
 class RTParser {
 private:

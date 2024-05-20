@@ -1,6 +1,7 @@
 #include <libds/adt/sorts.h>
 #include <libds/amt/implicit_sequence.h>
 #include "TableEntry.h"
+#include <libds/heap_monitor.h>
 
 #pragma once
 template <class DataType>
