@@ -50,6 +50,10 @@ public:
 		return formattedTime_;
 	}
 
+    int getSeconds() {
+        return seconds_;
+    }
+
     bool operator==(const Time& other) const {
         return seconds_ == other.seconds_;
     }

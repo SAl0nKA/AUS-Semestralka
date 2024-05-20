@@ -8,6 +8,7 @@
 #include "RTParser.h"
 #include "Algorithm.h"
 #include "Treap.h"
+#include "Sorter.h"
 
 class Console {
 private:
@@ -150,7 +151,7 @@ private:
 		);
 
 		
-		matchedEntries.isEmpty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
+		matchedEntries.isEmpty() ? printf("No addresses found\n") : printf("Found addresses %d:\n", matchedEntries.size());
 		int i = 1;
 		for (auto entry : matchedEntries) {
 			if (entry != nullptr) {
@@ -172,11 +173,7 @@ private:
 			return;
 		}
 
-		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
-		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
-
 		IPAddress matchAddress;
-
 		try {
 			matchAddress = IPAddress(inputIP);
 		} catch (const std::logic_error& e) {
@@ -184,32 +181,24 @@ private:
 			return;
 		}
 
-		ds::amt::ImplicitSequence<TableEntry*> nodeEntries;
-		while (begin != end) {
-			for (auto entry : (*begin)->entries_) {
-				if (entry == nullptr) {
-					continue;
-				}
-				nodeEntries.insertLast().data_ = entry;
+		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
+		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
+		auto addressPredicate = [&](TableEntry* otherEntry) {
+			return Console::matchWithAddress(matchAddress, otherEntry);
+		};
+		auto seqeunceHandler = [&](Node* node) {
+			ds::amt::ImplicitSequence<TableEntry*> is = node->entries_;
+			if (is.size() == 0) {
+				return false;
 			}
-			++begin;
-		}
+			//spustenie predikatu na IS
+			Algorithm::matchAddressBy(is.begin(), is.end(), inserter, addressPredicate);
+			};
+		//spustenie sequenceHandler nad hierarchiou
+		Algorithm::matchAddressBy(begin, end, [](Node* node) {}, seqeunceHandler);
 
-		Algorithm::matchAddressBy(nodeEntries.begin(), nodeEntries.end(),
-			inserter,
-			[&](TableEntry* otherEntry) {
-				return Console::matchWithAddress(matchAddress, otherEntry);
-			});
-
-		matchedEntries.isEmpty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
-		int i = 1;
-		for (auto entry : matchedEntries) {
-			if (entry != nullptr) {
-				printf("%d ", i);
-				entry->print();
-			}
-		}
-		printf("\n");
+		sortSequence(matchedEntries);
+		printEntries(matchedEntries);
 	}
 
 	template <class Iterator>
@@ -231,8 +220,8 @@ private:
 		Time* matchLifetimeTo;
 
 		try {
-			Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
-			Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+			matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
+			matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
 		} catch (const std::logic_error& e) {
 			printf("Invalid input: %s\n\n", e.what());
 			return;
@@ -251,15 +240,7 @@ private:
 		);
 
 
-		matchedEntries.isEmpty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
-		int i = 1;
-		for (auto entry : matchedEntries) {
-			if (entry != nullptr) {
-				printf("%d ", i);
-				entry->print();
-			}
-		}
-		printf("\n");
+		printEntries(matchedEntries);
 
 		delete matchLifetimeFrom;
 		delete matchLifetimeTo;
@@ -282,8 +263,8 @@ private:
 		Time* matchLifetimeTo;
 
 		try {
-			Time* matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
-			Time* matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
+			matchLifetimeFrom = inputFrom.empty() ? new Time(0) : new Time(inputFrom);
+			matchLifetimeTo = inputTo.empty() ? new Time(std::numeric_limits<int>::max()) : new Time(inputTo);
 		} catch (const std::logic_error& e) {
 			printf("Invalid input: %s\n\n", e.what());
 			return;
@@ -291,34 +272,22 @@ private:
 
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
-
-		ds::amt::ImplicitSequence<TableEntry*> nodeEntries;
-		while (begin != end) {
-			for (auto entry : (*begin)->entries_) {
-				if (entry == nullptr) {
-					continue;
-				}
-				nodeEntries.insertLast().data_ = entry;
+		auto lifetimePredicate = [&](TableEntry* otherEntry) {
+			return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherEntry);
+		};
+		auto seqeunceHandler = [&](Node* node) {
+			ds::amt::ImplicitSequence<TableEntry*> is = node->entries_;
+			if (is.size() == 0) {
+				return false;
 			}
-			++begin;
-		}
+			//spustenie predikatu na IS
+			Algorithm::matchAddressBy(is.begin(), is.end(), inserter, lifetimePredicate);
+		};
+		//spustenie sequenceHandler nad hierarchiou
+		Algorithm::matchAddressBy(begin, end, [](Node* node) {}, seqeunceHandler);
 
-		Algorithm::matchAddressBy(nodeEntries.begin(), nodeEntries.end(),
-			inserter,
-			[&](TableEntry* otherEntry) {
-				return Console::matchLifetime(matchLifetimeFrom, matchLifetimeTo, otherEntry);
-			});
-			
-
-		matchedEntries.isEmpty() ? std::cout << "No addresses found\n" : std::cout << "Found address matches\n";
-		int i = 1;
-		for (auto entry : matchedEntries) {
-			if (entry != nullptr) {
-				printf("%d ", i);
-				entry->print();
-			}
-		}
-		printf("\n");
+		sortSequence(matchedEntries);
+		printEntries(matchedEntries);
 
 		delete matchLifetimeFrom;
 		delete matchLifetimeTo;
@@ -405,7 +374,7 @@ private:
 		}
 	}
 
-	void filterHierarchy(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator iterator,char choice) {
+	void filterHierarchy(Hierarchy::PreOrderHierarchyIterator iterator,char choice) {
 		using Iterator = ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator;
 		Iterator itBegin(&hierarchy->hierarchy_, &iterator.getBlockType());
 		Iterator itEnd(&hierarchy->hierarchy_, nullptr);
@@ -432,7 +401,7 @@ private:
 	}
 
 	void findByNexthop() {
-		printf("Enter your nexthop IP address: ");
+		printf("Enter your next hop IP address: ");
 
 		std::string inputIP;
 		std::getline(std::cin, inputIP);
@@ -463,6 +432,18 @@ private:
 		}
 	}
 
+	void printEntries(ds::amt::ImplicitSequence<TableEntry*> matchedEntries) {
+		matchedEntries.isEmpty() ? printf("No addresses found\n") : printf("Found addresses %d:\n", matchedEntries.size());
+		int i = 1;
+		for (auto entry : matchedEntries) {
+			if (entry != nullptr) {
+				printf("%d ", i);
+				entry->print();
+			}
+		}
+		printf("\n");
+	}
+
 	static bool matchWithAddress(IPAddress matchAddress, TableEntry* otherEntry) {
 		if (otherEntry == nullptr) {
 			return false;
@@ -489,4 +470,27 @@ private:
 		return false;
 	}
 
+	void sortSequence(ds::amt::ImplicitSequence<TableEntry*>& sequence) {
+		Sorter<TableEntry*> sorter = Sorter<TableEntry*>();
+		
+		printf("How do you want to sort your results?\n");
+		printf("Press enter to skip sorting\n");
+		printf("By [t]ime/[o]ctets: ");
+		std::string input;
+		std::getline(std::cin, input);
+		if (input.empty()) {
+			printf("Skipping sorting\n");
+			return;
+		}
+
+		if (input[0] == 't') {
+			auto sortByTime = [&](TableEntry* first, TableEntry* second) { return Sorter<TableEntry*>::compareTime(first, second); };
+			sorter.sortBy(sequence, sortByTime);
+		} else if (input[0] == 'o') {
+			auto sortByOctets = [&](TableEntry* first, TableEntry* second) { return Sorter<TableEntry*>::comparePrefix(first, second); };
+			sorter.sortBy(sequence, sortByOctets);
+		} else {
+			printf("Skipping sorting\n");
+		}
+	}
 };
