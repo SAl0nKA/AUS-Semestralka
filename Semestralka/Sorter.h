@@ -7,7 +7,6 @@ template <class DataType>
 class Sorter {
 	ds::adt::QuickSort<DataType> sort;
 
-
 public:
 	Sorter() {
 

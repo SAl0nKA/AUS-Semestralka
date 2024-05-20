@@ -18,10 +18,13 @@ private:
 
 public:
 	Console(std::string path) {
+		hierarchy = new Hierarchy();
+		treap = new Treap();
+
 		printf("Welcome to the routing table parser\n");
 		printf("Input the path for the CSV file or press enter for default path [./RT.csv]: ");
+
 		std::string input = "";
-		//todo fix incorrect path
 		std::getline(std::cin, input);
 		if (input == "") {
 			loadFile(path);
@@ -41,33 +44,20 @@ public:
 private:
 	void loadFile(std::string path) {
 		RTParser rtparser(path);
-		treap = new Treap();
-
-		int i = 1;
+		
+		//int i = 1;
 		while (rtparser.isOpen()) {
 			TableEntry* entry = rtparser.parseLine();
 			if (entry == nullptr) {
 				continue;
 			}
 			rt_.push_back(entry);
-			//todo rework to methods
-			std::string nextHopStr = entry->getNextHop()->stringWithoutMask();
-			ds::amt::ImplicitSequence<TableEntry*>** sequence = nullptr;
-			//printf("%d Iteracia\n", i);
-			bool found = treap->treap_.tryFind(nextHopStr, sequence);
-			if (found) {
-				(*sequence)->insertLast().data_ = entry;
-			} else {
-				ds::amt::ImplicitSequence<TableEntry*>* tmp = new ds::amt::ImplicitSequence<TableEntry*>();
-				tmp->insertLast().data_ = entry;
-				//printf("Tmp size: %d\n", tmp->size());
-				treap->treap_.insert(nextHopStr, tmp);
-			}
-			++i;
+			hierarchy->addToHierarchy(entry);
+			treap->addToTreap(entry);
+			//++i;
 		}
-		hierarchy = new Hierarchy(rt_);
-
 	}
+
 public:
 	bool mainMenu() {
 		//printf("Size: %d\n",hierarchy->hierarchy_.size());
@@ -81,7 +71,7 @@ public:
 
 		std::string input;
 		std::getline(std::cin, input);
-		//auto entryTypeDefiner = [](TableEntry* entry) {return entry; };
+
 		switch (input[0]) {
 		case '1':
 			listAll();
@@ -119,6 +109,7 @@ private:
 		}
 	}
 
+	//Level 1
 	template <typename Iterator>
 	void findEntryByIP(Iterator begin, Iterator end) {
 		printf("Enter your IP address: ");
@@ -143,7 +134,8 @@ private:
 		ds::amt::ImplicitSequence<TableEntry*> matchedEntries;
 		auto inserter = [&](TableEntry* entry) {matchedEntries.insertLast().data_ = entry; };
 		auto matchAddressPredicate = [&](TableEntry* otherEntry) {
-			return Console::matchWithAddress(matchAddress, otherEntry); };
+			return Console::matchWithAddress(matchAddress, otherEntry); 
+		};
 
 		Algorithm::matchAddressBy(begin, end,
 			inserter, 
@@ -162,6 +154,7 @@ private:
 		printf("\n");
 	}
 
+	//Level 2
 	void findNodeByIP(Hierarchy::PreOrderHierarchyIterator begin, Hierarchy::PreOrderHierarchyIterator end) {
 		printf("Enter your IP address: ");
 
@@ -191,16 +184,18 @@ private:
 			if (is.size() == 0) {
 				return false;
 			}
-			//spustenie predikatu na IS
+			//spustenie predikatu nad IS
 			Algorithm::matchAddressBy(is.begin(), is.end(), inserter, addressPredicate);
 			};
 		//spustenie sequenceHandler nad hierarchiou
 		Algorithm::matchAddressBy(begin, end, [](Node* node) {}, seqeunceHandler);
 
+		//Level 4
 		sortSequence(matchedEntries);
 		printEntries(matchedEntries);
 	}
 
+	//Level 1
 	template <class Iterator>
 	void findEntryByLifetime(Iterator begin, Iterator end) {
 		printf("Enter the first part of the time interval in format [1w2d3h] or [hh:mm:ss]: ");
@@ -246,6 +241,7 @@ private:
 		delete matchLifetimeTo;
 	}
 
+	//Level 2
 	void findNodeByLifetime(Hierarchy::PreOrderHierarchyIterator begin, Hierarchy::PreOrderHierarchyIterator end) {
 		printf("Enter the first part of the time interval in format [1w2d3h] or [hh:mm:ss]: ");
 		std::string inputFrom;
@@ -286,6 +282,7 @@ private:
 		//spustenie sequenceHandler nad hierarchiou
 		Algorithm::matchAddressBy(begin, end, [](Node* node) {}, seqeunceHandler);
 
+		//Level 4
 		sortSequence(matchedEntries);
 		printEntries(matchedEntries);
 
@@ -293,6 +290,7 @@ private:
 		delete matchLifetimeTo;
 	}
 
+	//Level 2
 	void listOctets() {
 		/*hierarchy->visualize(hierarchy->hierarchy_.accessRoot());
 		return;*/
@@ -374,6 +372,7 @@ private:
 		}
 	}
 
+	//Level 2
 	void filterHierarchy(Hierarchy::PreOrderHierarchyIterator iterator,char choice) {
 		using Iterator = ds::amt::Hierarchy<ds::amt::MultiWayExplicitHierarchyBlock<Node*>>::PreOrderHierarchyIterator;
 		Iterator itBegin(&hierarchy->hierarchy_, &iterator.getBlockType());
@@ -388,6 +387,7 @@ private:
 		}
 	}
 
+	//Level 2
 	int listAvailableOctets(ds::amt::Hierarchy<Hierarchy::HierarchyBlockType>::PreOrderHierarchyIterator& iterator) {
 		auto sons = iterator.getBlockType().sons_;
 		printf("Available octets: \n");
@@ -400,6 +400,7 @@ private:
 		return sons->size();
 	}
 
+	//Level 3
 	void findByNexthop() {
 		printf("Enter your next hop IP address: ");
 
@@ -444,6 +445,7 @@ private:
 		printf("\n");
 	}
 
+	//Level 1
 	static bool matchWithAddress(IPAddress matchAddress, TableEntry* otherEntry) {
 		if (otherEntry == nullptr) {
 			return false;
@@ -460,6 +462,7 @@ private:
 		return true;
 	}
 
+	//Level 1
 	static bool matchLifetime(Time* matchLifetimeFrom, Time* matchLifetimeTo, TableEntry* otherEntry) {
 		if (otherEntry == nullptr) {
 			return false;
@@ -470,6 +473,7 @@ private:
 		return false;
 	}
 
+	//Level 4
 	void sortSequence(ds::amt::ImplicitSequence<TableEntry*>& sequence) {
 		Sorter<TableEntry*> sorter = Sorter<TableEntry*>();
 		
