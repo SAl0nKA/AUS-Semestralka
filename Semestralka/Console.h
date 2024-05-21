@@ -445,11 +445,16 @@ private:
 		}
 		int maskTmp = otherEntry->getAddress()->getMaskLength();
 		for (size_t i = 0; i < 4; i++) {
-			if (otherEntry->getAddress()->getAddressOctet(i) != (matchAddress.getAddressOctet(i) & IPAddress::createMaskNumber(maskTmp > 8 ? 8 : maskTmp))) {
+			uint8_t otherOctet = otherEntry->getAddress()->getAddressOctet(i);
+			uint8_t matchOctet = matchAddress.getAddressOctet(i);
+			uint8_t mask = IPAddress::createMaskNumber(maskTmp > 8 ? 8 : maskTmp);
+			if ((otherOctet & mask) != (matchOctet & mask)) {
 				return false;
 			}
-			if (maskTmp >= 8) {
-				maskTmp -= 8;
+
+			maskTmp -= 8;
+			if (maskTmp <= 0) {
+				break; 
 			}
 		}
 		return true;
