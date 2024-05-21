@@ -15,6 +15,8 @@ std::vector<std::unique_ptr<ds::tests::Test>> createTests()
 	auto amt  = std::make_unique<ds::tests::CompositeTest>("amt");
 	auto adt  = std::make_unique<ds::tests::CompositeTest>("adt");
 
+	auto table = std::make_unique<ds::tests::CompositeTest>("adt");
+
 	mm->add_test(std::make_unique<ds::tests::MemoryManagerTest>());
 
 	 //TODO 02

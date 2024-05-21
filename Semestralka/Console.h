@@ -321,7 +321,7 @@ private:
 			
 			try {
 				index = std::stoi(input);
-			} catch (const std::logic_error& e) {
+			} catch (const std::logic_error&) {
 				printf("Invalid input, try again\n\n");
 				continue;
 			}

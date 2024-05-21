@@ -5,19 +5,17 @@
 #include <random>
 #include <vector>
 
-namespace ds::utils
-{
+namespace ds::utils {
     /**
      * @brief Common base for list analyzers.
      */
     template<class List>
-    class ListAnalyzer : public ComplexityAnalyzer<List>
-    {
+    class ListAnalyzer : public ComplexityAnalyzer<List> {
     protected:
         explicit ListAnalyzer(const std::string& name);
 
     protected:
-        void growToSize(List& structure, size_t size) override;        
+        void growToSize(List& structure, size_t size) override;
 
         size_t getRandomIndex() const;
         int getRandomData() const;
@@ -33,8 +31,7 @@ namespace ds::utils
      * @brief Analyzes complexity of an insertion at the beginning.
      */
     template<class List>
-    class ListInsertAnalyzer : public ListAnalyzer<List>
-    {
+    class ListInsertAnalyzer : public ListAnalyzer<List> {
     public:
         explicit ListInsertAnalyzer(const std::string& name);
 
@@ -46,8 +43,7 @@ namespace ds::utils
      * @brief Analyzes complexity of an erasure at the beginning.
      */
     template<class List>
-    class ListRemoveAnalyzer : public ListAnalyzer<List>
-    {
+    class ListRemoveAnalyzer : public ListAnalyzer<List> {
     public:
         explicit ListRemoveAnalyzer(const std::string& name);
 
@@ -58,8 +54,7 @@ namespace ds::utils
     /**
      * @brief Container for all list analyzers.
      */
-    class ListsAnalyzer : public CompositeAnalyzer
-    {
+    class ListsAnalyzer : public CompositeAnalyzer {
     public:
         ListsAnalyzer();
     };
@@ -72,28 +67,29 @@ namespace ds::utils
         rngData_(144),
         rngIndex_(144),
         index_(0),
-        data_(0)
-    {
-        // TODO 01
+        data_(0) {
+        ComplexityAnalyzer<List>::registerBeforeOperation([this](List& list) {
+            std::uniform_int_distribution<size_t> indexDist(0, list.size() - 1);
+            index_ = indexDist(rngIndex_);
+            data_ = rngData_();
+            });
     }
 
     template <class List>
     void ListAnalyzer<List>::growToSize(List& structure, size_t size) {
-        size_t howMany = size - structure.size();
-        for (size_t i = 0; i < howMany; ++i) {
+        const size_t toInsert = size - structure.size();
+        for (size_t i = 0; i < toInsert; ++i) {
             structure.push_back(rngData_());
         }
     }
 
     template<class List>
-    size_t ListAnalyzer<List>::getRandomIndex() const
-    {
+    size_t ListAnalyzer<List>::getRandomIndex() const {
         return index_;
     }
 
     template<class List>
-    int ListAnalyzer<List>::getRandomData() const
-    {
+    int ListAnalyzer<List>::getRandomData() const {
         return data_;
     }
 
@@ -101,37 +97,31 @@ namespace ds::utils
 
     template <class List>
     ListInsertAnalyzer<List>::ListInsertAnalyzer(const std::string& name) :
-        ListAnalyzer<List>(name)
-    {
+        ListAnalyzer<List>(name) {
     }
 
     template <class List>
-    void ListInsertAnalyzer<List>::executeOperation(List& structure)
-    {
-        structure.insert(structure.begin(), getRandomData());
+    void ListInsertAnalyzer<List>::executeOperation(List& structure) {
+        auto data = this->getRandomData();
+        structure.insert(structure.begin(), data);
     }
 
     //----------
 
     template <class List>
     ListRemoveAnalyzer<List>::ListRemoveAnalyzer(const std::string& name) :
-        ListAnalyzer<List>(name)
-    {
+        ListAnalyzer<List>(name) {
     }
 
     template <class List>
-    void ListRemoveAnalyzer<List>::executeOperation(List& structure)
-    {
-        // TODO 01
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+    void ListRemoveAnalyzer<List>::executeOperation(List& structure) {
+        structure.erase(structure.begin());
     }
 
     //----------
 
     inline ListsAnalyzer::ListsAnalyzer() :
-        CompositeAnalyzer("Lists")
-    {
+        CompositeAnalyzer("Lists") {
         this->addAnalyzer(std::make_unique<ListInsertAnalyzer<std::vector<int>>>("vector-insert"));
         this->addAnalyzer(std::make_unique<ListInsertAnalyzer<std::list<int>>>("list-insert"));
         this->addAnalyzer(std::make_unique<ListRemoveAnalyzer<std::vector<int>>>("vector-remove"));
