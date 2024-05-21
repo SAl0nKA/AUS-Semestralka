@@ -284,8 +284,6 @@ private:
 
 	//Level 2
 	void listOctets() {
-		/*hierarchy->visualize(hierarchy->hierarchy_.accessRoot());
-		return;*/
 		auto iterator = hierarchy->hierarchy_.beginPre();
 
 		int sonsCount = 0;

@@ -385,15 +385,6 @@ namespace ds::amt {
     template<typename DataType>
     IS<MultiWayExplicitHierarchyBlock<DataType>*>* MultiWayExplicitHierarchy<DataType>::getSons(BlockType& currentNode) {
         return currentNode.sons_;
-        /*MemoryBlock<BlockType*>* sonBlock = parent.sons_->access(sonOrder);
-
-        BlockType* removedSon = sonBlock->data_;
-
-        Hierarchy<BlockType>::processPostOrder(removedSon, [&](BlockType* b) {
-            AbstractMemoryStructure<BlockType>::memoryManager_->releaseMemory(b);
-            });
-
-        parent.sons_->remove(sonOrder);*/
     }
 
     template<typename DataType, size_t K>

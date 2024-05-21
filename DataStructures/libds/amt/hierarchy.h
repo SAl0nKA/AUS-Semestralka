@@ -462,8 +462,6 @@ namespace ds::amt {
             this->savePosition(nextSon);
             this->currentPosition_->previousPosition_->currentSon_ = nextSon;
             this->currentPosition_->previousPosition_->currentSonOrder_ = index + 1;
-            //todo decide
-            //this->currentPosition_->previousPosition_->visitedSonCount_ = index + 1;
             ++this->currentPosition_->previousPosition_->visitedSonCount_;
 
             this->currentPosition_->previousPosition_->currentNodeProcessed_ = true;
